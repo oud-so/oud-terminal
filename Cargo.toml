@@ -4,6 +4,9 @@ version = "0.1.0"
 edition = "2024"
 description = "oud. your signal, in the terminal."
 readme = "README.md"
+license = "MIT"
+repository = "https://github.com/oud-so/oud-terminal"
+homepage = "https://oud.so"
 publish = false
 
 [dependencies]

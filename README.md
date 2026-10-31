@@ -110,3 +110,8 @@ oud API ──► stream list (best first, failover in order)
 
 Not yet: HE-AAC (aac+) plays only its base layer, and Opus streams are
 skipped in favour of another stream for the station.
+
+## License
+
+The code is [MIT](LICENSE). The name oud and its marks are not part of
+that license: a fork is welcome, under a name of its own.

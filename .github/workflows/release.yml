@@ -94,6 +94,7 @@ jobs:
           class Oud < Formula
             desc "Internet radio from every country, in the terminal"
             homepage "https://oud.so"
+            license "MIT"
             version "$VERSION"
 
             on_macos do
