@@ -2,22 +2,26 @@
 
 oud. your signal, in the terminal.
 
-A full-screen internet radio player for [oud.so](https://oud.so). It plays
-audio itself: no mpv, no ffmpeg, nothing else to install.
+![oud playing a station, with the visual beside it](assets/screenshot.svg)
 
-## Run
+A full-screen internet radio player for [oud.so](https://oud.so): thousands of
+live stations from every country, by genre and by mood. It plays audio
+itself: no mpv, no ffmpeg, nothing else to install.
+
+## Install
 
 ```sh
-cargo run --release            # the interface
-cargo run --release -- play kral fm   # play the best match, no interface
-cargo run --release -- search jazz    # list matches
+brew install oud-so/tap/oud
+oud
 ```
 
-Install the `oud` command locally:
+macOS on Apple silicon or Intel. Updates come with `brew upgrade oud`.
+
+## Build from source
 
 ```sh
-cargo install --path .
-oud
+cargo run --release
+cargo install --path .   # the oud command, from this checkout
 ```
 
 `OUD_API_URL` (or `--api`) points it at another API, e.g. a local one.

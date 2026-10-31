@@ -27,14 +27,18 @@ struct Cli {
     command: Option<Command>,
 }
 
+// Kept for debugging, out of `--help`: oud is meant to be used through its
+// interface.
 #[derive(Subcommand)]
 enum Command {
     /// Play the best match for a search, without the interface.
+    #[command(hide = true)]
     Play {
         #[arg(required = true, num_args = 1..)]
         query: Vec<String>,
     },
     /// List stations matching a search.
+    #[command(hide = true)]
     Search {
         #[arg(required = true, num_args = 1..)]
         query: Vec<String>,
