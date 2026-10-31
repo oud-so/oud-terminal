@@ -206,9 +206,12 @@ pub struct Link {
 /// What the account screen offers once signed in: label and key.
 pub const YOU_ROWS: [(&str, &str); 2] = [("library", "3"), ("sign out", "o")];
 
-pub const LINKS: [Link; 2] = [
+/// In the order the about screen shows them; `↑ ↓` steps through them.
+pub const LINKS: [Link; 4] = [
     Link { key: "o", label: "oud.so", url: "https://oud.so" },
-    Link { key: "x", label: "made by @forwardset", url: "https://x.com/forwardset" },
+    Link { key: "c", label: "the code, on github", url: "https://github.com/oud-so/oud-terminal" },
+    Link { key: "r", label: "radio-browser.info", url: "https://www.radio-browser.info" },
+    Link { key: "x", label: "@forwardset on x", url: "https://x.com/forwardset" },
 ];
 
 /// What a clickable spot on screen leads to.

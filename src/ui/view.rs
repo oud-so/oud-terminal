@@ -742,32 +742,35 @@ fn draw_about(f: &mut Frame, app: &mut App, area: Rect) {
         ("↑ ↓", "move"),
         ("enter", "play / open"),
         ("space", "stop / resume"),
-        ("← →", "previous / next station"),
+        ("← →", "previous / next"),
         ("- +", "volume"),
         ("s", "bookmark / remove"),
         ("/", "search stations"),
-        ("g  c", "pick genre / country"),
+        ("g  c", "genre / country"),
         ("esc", "back / clear"),
+        ("i", "station details"),
+        ("w", "homepage, in details"),
         ("e  E", "next / previous visual"),
         ("v", "show / hide visual"),
-        ("i", "station details"),
-        ("w", "station homepage, from details"),
-        ("tab  1-4", "explore · stations · library · about"),
+        ("tab 1-4", "the four screens"),
         ("u", "you: sign in or out"),
         ("?", "about, and back"),
         ("q", "quit"),
     ];
     let w = area.width as usize;
-    let mut lines = vec![Line::styled("your signal, in the terminal.", hushed())];
-    let mut version = vec![Span::styled(format!("oud {}", update::CURRENT), dim())];
+    let mut version = vec![
+        Span::styled("your signal, in the terminal. ", hushed()),
+        Span::styled(format!("oud {}", update::CURRENT), dim()),
+    ];
     if let Some(update) = app.update() {
         version.push(Span::styled(" · ", dim()));
         version.extend(update_line(&update, false));
     }
-    lines.extend([Line::from(version), Line::raw("")]);
+    let mut lines = vec![Line::from(version), Line::raw("")];
 
-    // The links come first and remember where they were drawn, for clicks.
-    for (i, item) in LINKS.iter().enumerate() {
+    // A link, by its place in LINKS, remembering where it was drawn for clicks.
+    let mut push_link = |lines: &mut Vec<Line>, i: usize| {
+        let item = &LINKS[i];
         let row = area.y + lines.len() as u16;
         let selected = i == app.about_sel;
         let label_style = if selected { Style::new().add_modifier(Modifier::REVERSED) } else { link() };
@@ -781,16 +784,47 @@ fn draw_about(f: &mut Frame, app: &mut App, area: Rect) {
             vec![Span::styled(format!("[{}]", item.key), dim())],
             w,
         ));
-    }
+    };
+    let text = |s: &'static str| Line::styled(s, dim());
 
+    lines.push(Line::styled("what it is.", hushed()));
+    lines.push(text("live radio from every country, by genre and by mood. bookmarks and"));
+    lines.push(text("lists are your account's, the same on oud.so. open source, mit."));
+    push_link(&mut lines, 0);
+    push_link(&mut lines, 1);
     lines.push(Line::raw(""));
+
+    lines.push(Line::styled("where it comes from.", hushed()));
+    lines.push(text("stations from radio-browser.info, a directory kept by its listeners."));
     lines.push(Line::styled(format!("maps {}.", crate::map::ATTRIBUTION), dim()));
+    push_link(&mut lines, 2);
     lines.push(Line::raw(""));
+
+    lines.push(Line::styled("who makes it.", hushed()));
+    lines.push(text("an independent project by uğur sözen."));
+    push_link(&mut lines, 3);
+    lines.push(Line::raw(""));
+
+    // Keys in two columns where they fit, one where they don't.
     lines.push(Line::styled("keys.", hushed()));
-    lines.push(Line::raw(""));
-    lines.extend(KEYS.iter().map(|(k, what)| {
-        Line::from(vec![Span::styled(format!("{k:<12}"), bold()), Span::styled(*what, dim())])
-    }));
+    const KEY_W: usize = 9;
+    let half = w / 2;
+    let cell = |(k, what): &(&str, &str)| {
+        vec![Span::styled(format!("{k:<KEY_W$}"), bold()), Span::styled(what.to_string(), dim())]
+    };
+    if half >= KEY_W + 24 {
+        for pair in KEYS.chunks(2) {
+            let mut spans = cell(&pair[0]);
+            let used: usize = spans.iter().map(|s| s.content.width()).sum();
+            if let Some(second) = pair.get(1) {
+                spans.push(Span::raw(" ".repeat(half.saturating_sub(used))));
+                spans.extend(cell(second));
+            }
+            lines.push(Line::from(spans));
+        }
+    } else {
+        lines.extend(KEYS.iter().map(|k| Line::from(cell(k))));
+    }
     f.render_widget(Paragraph::new(lines), area);
 }
 
