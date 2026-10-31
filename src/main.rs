@@ -4,6 +4,7 @@ mod map;
 mod spectrum;
 mod store;
 mod ui;
+mod update;
 mod visual;
 
 use std::sync::mpsc;

@@ -1,5 +1,5 @@
-//! What the terminal remembers between runs: volume, the visual and the
-//! last station, in one small JSON file in the platform's config directory.
+//! What the terminal remembers between runs: volume, the visual, the last
+//! station and what was last heard about new releases, in one small JSON file in the platform's config directory.
 //! Bookmarks and lists live on the account, not here.
 //!
 //! The session token sits beside it in a file of its own that only the user
@@ -13,6 +13,7 @@ use directories::ProjectDirs;
 use serde::{Deserialize, Serialize};
 
 use crate::api::Station;
+use crate::update::Release;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -24,11 +25,19 @@ pub struct Store {
     pub visual_mode: String,
     /// The station last tuned to, so space can bring it back.
     pub last: Option<Station>,
+    /// What the API last said about new releases (see `update`).
+    pub release: Release,
 }
 
 impl Default for Store {
     fn default() -> Self {
-        Self { volume: 0.8, visual: true, visual_mode: String::new(), last: None }
+        Self {
+            volume: 0.8,
+            visual: true,
+            visual_mode: String::new(),
+            last: None,
+            release: Release::default(),
+        }
     }
 }
 

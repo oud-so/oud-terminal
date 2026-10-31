@@ -13,11 +13,14 @@ use std::time::{Duration, Instant};
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers};
 
 use super::daypart::{self, Daypart};
-use crate::api::{Api, Country, DeviceCode, DevicePoll, FeaturedList, Genre, Station, User, UserList};
+use crate::api::{
+    Api, Country, DeviceCode, DevicePoll, FeaturedList, Genre, Station, TerminalVersion, User, UserList,
+};
 use crate::audio::{Event, Player};
 use crate::map::{self, Map};
 use crate::spectrum::Spectrum;
 use crate::store::{Store, session};
+use crate::update::{Release, Update};
 use crate::visual::{Pattern, Visual};
 
 const VOLUME_STEP: f32 = 0.05;
@@ -70,6 +73,8 @@ pub enum Msg {
     UserList(String, anyhow::Result<Vec<Station>>),
     /// A bookmark change the server refused.
     BookmarkFailed(String),
+    /// The newest release, and the oldest the API still works with.
+    Release(anyhow::Result<TerminalVersion>),
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -342,6 +347,9 @@ impl App {
         app.fetch(|api| Msg::Genres(api.genres()));
         app.fetch(|api| Msg::Countries(api.countries()));
         app.search();
+        if app.store.release.due() {
+            app.fetch(|api| Msg::Release(api.terminal_version()));
+        }
         if let Some(token) = session::load() {
             app.api.set_token(Some(token));
             app.check_session();
@@ -430,7 +438,18 @@ impl App {
                 self.notify(format!("couldn't change that bookmark. {e}"));
                 self.refresh_library();
             }
+            Msg::Release(Ok(v)) => {
+                self.store.release = Release::heard(v.latest, v.minimum);
+                let _ = self.store.save();
+            }
+            // Asked again on the next run; nothing to say meanwhile.
+            Msg::Release(Err(_)) => {}
         }
+    }
+
+    /// A newer release to mention, from what the API last said.
+    pub fn update(&self) -> Option<Update> {
+        self.store.release.update()
     }
 
     pub fn on_audio(&mut self, event: Event) {

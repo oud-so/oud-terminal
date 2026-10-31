@@ -22,6 +22,18 @@ oud
 
 `OUD_API_URL` (or `--api`) points it at another API, e.g. a local one.
 
+## Updates
+
+Once a day, in the background, oud asks the API for the newest release
+(`/v1/terminal/version`, which reads the tap's GitHub releases). When one is
+out it says so on the bottom line and on the about screen, with
+`brew upgrade oud` when it was installed by Homebrew. Nothing is downloaded
+or replaced by oud itself. If the API sets a minimum version this copy is
+below, the line says it is too old to keep working.
+
+`oud --version` prints the version; `OUD_NO_UPDATE_CHECK=1` turns the asking
+off.
+
 ## Your account
 
 Listening needs no account. Bookmarks and lists are the account's, the same

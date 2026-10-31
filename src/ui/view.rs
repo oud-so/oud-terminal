@@ -15,6 +15,7 @@ use super::app::{
     SignIn, Signal, Target, YOU_ROWS,
 };
 use crate::api::Station;
+use crate::update::{self, Update};
 use crate::visual::Energy;
 
 const MARGIN_X: u16 = 3;
@@ -126,6 +127,11 @@ pub fn draw(f: &mut Frame, app: &mut App) {
     draw_track(f, app, track);
     draw_bar(f, app, bar);
     draw_nav(f, app, nav);
+    // The row under the nav is the frame's bottom margin; a new release is
+    // mentioned there, out of the way.
+    if full.height > nav.bottom() - full.y {
+        draw_update(f, app, Rect { y: nav.bottom(), ..nav });
+    }
 
     // Wide terminals get the visual in the free space to the right,
     // spanning from the header down to the player bar.
@@ -752,7 +758,13 @@ fn draw_about(f: &mut Frame, app: &mut App, area: Rect) {
         ("q", "quit"),
     ];
     let w = area.width as usize;
-    let mut lines = vec![Line::styled("your signal, in the terminal.", hushed()), Line::raw("")];
+    let mut lines = vec![Line::styled("your signal, in the terminal.", hushed())];
+    let mut version = vec![Span::styled(format!("oud {}", update::CURRENT), dim())];
+    if let Some(update) = app.update() {
+        version.push(Span::styled(" · ", dim()));
+        version.extend(update_line(&update, false));
+    }
+    lines.extend([Line::from(version), Line::raw("")]);
 
     // The links come first and remember where they were drawn, for clicks.
     for (i, item) in LINKS.iter().enumerate() {
@@ -1036,6 +1048,35 @@ fn draw_visual(f: &mut Frame, app: &mut App, area: Rect) {
 
 /// The screens, centred under the player, each with its key. Each one is
 /// clickable too.
+/// The line about a newer release, when there is one: what it is, and how
+/// this copy is upgraded when that is known. `named` when the line stands
+/// alone, away from this copy's own version.
+fn update_line(update: &Update, named: bool) -> Vec<Span<'static>> {
+    let how = update::upgrade_command();
+    let name = if named { "oud " } else { "" };
+    let mut spans = match update {
+        Update::Available(v) => vec![Span::styled(format!("{name}{v} is out"), dim())],
+        Update::Required(v) => {
+            vec![Span::styled(format!("too old to keep working, {name}{v} is out"), bold())]
+        }
+    };
+    if let Some(how) = how {
+        spans.extend([Span::styled(" · ", dim()), Span::styled(how, bold())]);
+    }
+    spans
+}
+
+fn draw_update(f: &mut Frame, app: &App, area: Rect) {
+    let Some(update) = app.update() else { return };
+    let spans = update_line(&update, true);
+    let width: usize = spans.iter().map(|s| s.content.width()).sum();
+    if width > area.width as usize {
+        return;
+    }
+    let x = area.right() - width as u16;
+    f.render_widget(Paragraph::new(Line::from(spans)), Rect { x, width: width as u16, ..area });
+}
+
 fn draw_nav(f: &mut Frame, app: &mut App, area: Rect) {
     const GAP: &str = "   ";
     let items: Vec<(Screen, &str, &str)> = SCREENS

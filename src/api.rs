@@ -170,6 +170,12 @@ struct SearchResponse {
     radios: Vec<Station>,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct TerminalVersion {
+    pub latest: Option<String>,
+    pub minimum: Option<String>,
+}
+
 #[derive(Clone)]
 pub struct Api {
     base: String,
@@ -229,6 +235,11 @@ impl Api {
 
     fn post(&self, path: &str, body: &Value) -> Result<Response> {
         Self::check(path, self.send(self.request(Method::POST, path).json(body))?)
+    }
+
+    /// The newest terminal release, and the oldest the API still works with.
+    pub fn terminal_version(&self) -> Result<TerminalVersion> {
+        self.get("/v1/terminal/version")
     }
 
     pub fn search(&self, query: &str) -> Result<Vec<Station>> {
